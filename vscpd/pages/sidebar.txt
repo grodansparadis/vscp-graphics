@@ -1,0 +1,308 @@
+====== The VSCP Server ======
+
+  * [[start | Start]]
+  * [[introduction | Introduction]]
+
+**Setup**
+
+  * [[setting_up_the_system | Setting up the system]]
+  * [[setting_up_the_system_on_unix | Linux/Unix]]
+  * [[setting_up_the_system_on_windows | Windows]]
+  * [[setting_up_the_system_on_macintosh | Macintosh]]
+  * [[setting_up_the_system_on_rasperry_pi | Rasperry Pi]]
+  * [[setting_up_the_system_on_beaglebone | Beaglebone]]
+  * [[setting_up_the_system_on_openwrt | OpenWrt]]
+  * [[setting_up_the_system_on_8devices_carambola | Carambola]]
+  * [[setting_up_the_system_on_an embeded ArchLinuxArm system | ArchLinuxArm]]
+
+** Configure **
+
+  * [[files and directory structure | Files and directory structure ]]
+  * [[configuring_the_vscp_daemon | Configuration file format]]
+  * [[vscp_daemon_startup_switches | Startup switches]]
+
+**Server/Service Discovery**
+
+  * [[server_disovery | General]]
+  * [[server_disovery_probe | High end server probe]]
+  * [[server_disovery_heartbeats | Heartbeats]]	
+
+** Security **
+
+  * [[security_general | General]]
+
+**Webserver**
+
+  * [[web_server_interface | Web Server Interface]]
+  * [[vscp_daemon_web_server_interface_security | Security]]
+
+**UDP**
+
+  * [[daemon_udp_protocol_description_general | General]]
+
+**Multicast**
+
+  * [[daemon_multicast_protocol_description_general | General]]
+  * [[daemon_multicast_protocol_description_announce | Announce]]
+  * [[daemon_multicast_protocol_description_channels | Channels]]
+
+**TCP/IP Interface**
+ 
+  * [[vscp_daemon_tcp_ip_control_interface | TCP/IP Control Interface]]
+  * [[vscp_daemon_tcp_ip_control_interface_security | Security]]
+
+**[[vscp_daemon_tcp_ip_protocol_description | TCP/IP Protocol Description]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#noop_-_no_operation | NOOP]]
+  * [[vscp_daemon_tcp_ip_protocol_description#quit_-_close_the_connection | QUIT]]
+  * [[vscp_daemon_tcp_ip_protocol_description#help_-_give_help | HELP]]
+  * [[vscp_daemon_tcp_ip_protocol_description#user_-_username_for_login | USER]]
+  * [[vscp_daemon_tcp_ip_protocol_description#pass_-_password_for_login | PASS]]
+  * [[vscp_daemon_tcp_ip_protocol_description#challenge_-_get_challenge_session_id | CHALLENGE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#restart | RESTART]]
+  * [[vscp_daemon_tcp_ip_protocol_description#shutdown | SHUTDOWN]]
+  * [[vscp_daemon_tcp_ip_protocol_description#send_-_send_an_event | SEND]]
+  * [[vscp_daemon_tcp_ip_protocol_description#retr_-_retrieve_one_or_several_event_s | RETR]]
+  * [[vscp_daemon_tcp_ip_protocol_description#rcvloop_-_send_events_to_client_as_soon_as_they_arrive | RCVLOOP]]
+  * [[vscp_daemon_tcp_ip_protocol_description#quitloop_-_quit_receiving_loop | QUITLOOP]]
+  * [[vscp_daemon_tcp_ip_protocol_description#cdta_chkdata_-_check_if_there_are_events_to_retrieve | CHKDATA]]
+  * [[vscp_daemon_tcp_ip_protocol_description#clra_clrall_-_clear_all_events_in_in-queue | CLRALL]]
+  * [[vscp_daemon_tcp_ip_protocol_description#stat_-_get_statistics_information | STAT]]
+  * [[vscp_daemon_tcp_ip_protocol_description#info_-_get_status_information | NFO]]
+  * [[vscp_daemon_tcp_ip_protocol_description#chid_-_get_channel_id | CHID]]
+  * [[vscp_daemon_tcp_ip_protocol_description#sgid_setguid_-_set_guid_for_channel | SETGUID]]
+  * [[vscp_daemon_tcp_ip_protocol_description#ggid_getguid_-_get_guid_for_channel | GETGUID]]
+  * [[vscp_daemon_tcp_ip_protocol_description#vers_version_-_get_vscp_daemon_version | VERS]]
+  * [[vscp_daemon_tcp_ip_protocol_description#sflt_setfilter_-_set_incoming_event_filter | SETFILTER]]
+  * [[vscp_daemon_tcp_ip_protocol_description#smsk_setmask_-_set_incoming_event_mask | SETMASK]]
+  * [[vscp_daemon_tcp_ip_protocol_description#wcyd_whatcanyoudo_-_ask_the_capabilities_of_this_server | WCYD]]
+  * [[vscp_daemon_tcp_ip_protocol_description#measurement_-_send_a_measurement | MEASUREMENT]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#driver | DRIVER]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_install | INSTALL]]
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_uninstall | UNINSTALL]]
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_start | START]]
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_stop | STOP]]
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_reload | RELOAD]]
+  * [[vscp_daemon_tcp_ip_protocol_description#driver_upgrade | UPGRADE]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#file | FILE]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#dir | DIR]]
+  * [[vscp_daemon_tcp_ip_protocol_description#copy | COPY]]
+  * [[vscp_daemon_tcp_ip_protocol_description#move | MOVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#delete | DELETE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#list | LIST]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#udp|UDP]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#enable | ENABLE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#disable | DISABLE]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#remote | REMOTE]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#list1 | LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description#add | ADD]]
+  * [[vscp_daemon_tcp_ip_protocol_description#remove | REMOVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#privilege | PRIVELEGE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#password | PASSWORD]]
+  * [[vscp_daemon_tcp_ip_protocol_description#host-list | HOST-LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description#event-list | EVENT_LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description#filter | FILTER]]
+  * [[vscp_daemon_tcp_ip_protocol_description#mask | MASK]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#interface | INTERFACE]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description | list2 | LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description | close | CLOSE]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#dm | DM]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#enable1 | ENABLE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#disable1 | DISABLE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#list3 | LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description#add1 | ADD]]
+  * [[vscp_daemon_tcp_ip_protocol_description#delete1 | DELETE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#reset | RESET]]
+  * [[vscp_daemon_tcp_ip_protocol_description#clrtrig | CLRTRIG]]
+  * [[vscp_daemon_tcp_ip_protocol_description#clrerr | CLRERR]]
+  * [[vscp_daemon_tcp_ip_protocol_description#save | SAVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#load | LOAD]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#var | VAR]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#list4 | LIST]]
+  * [[vscp_daemon_tcp_ip_protocol_description#write | WRITE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#read | READ]]
+  * [[vscp_daemon_tcp_ip_protocol_description#readvalue | READVALUE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#writevalue | WRITEVALUE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#readnote | READNOTE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#writenote | WRITENOTE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#reset1 | RESET]]
+  * [[vscp_daemon_tcp_ip_protocol_description#readreset | READRESET]]
+  * [[vscp_daemon_tcp_ip_protocol_description#remove1 | REMOVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#readremove | READREMOVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#length | LENGTH]]
+  * [[vscp_daemon_tcp_ip_protocol_description#save1 | SAVE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#load1 | LOAD]]
+
+**[[vscp_daemon_tcp_ip_protocol_description#table | TABLE]]**
+
+  * [[vscp_daemon_tcp_ip_protocol_description#list5 | LIST all]]
+  * [[vscp_daemon_tcp_ip_protocol_description#list_table-name | LIST table]]
+  * [[vscp_daemon_tcp_ip_protocol_description#get_table-name_from_to_full | GET]]
+  * [[vscp_daemon_tcp_ip_protocol_description#getraw_table-name_from_to | GETRAW]]
+  * [[vscp_daemon_tcp_ip_protocol_description#log_table-name_value_datetime | LOG]]
+  * [[vscp_daemon_tcp_ip_protocol_description#logsql_table-name_sql | LOGSQL]]
+  * [[vscp_daemon_tcp_ip_protocol_description#records_table-name_from_to | RECORDS]]
+  * [[vscp_daemon_tcp_ip_protocol_description#firstdate_table-name_from_to | FIRSTDATE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#lastdate_table-name_from_to | LAStDATE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#sum_table-name_from_to | SUM]]
+  * [[vscp_daemon_tcp_ip_protocol_description#sum_table-name_from_to | SUM]]
+  * [[vscp_daemon_tcp_ip_protocol_description#min_table-name_from_to | MIN]]
+  * [[vscp_daemon_tcp_ip_protocol_description#max_table-name_from_to | MAX]]
+  * [[vscp_daemon_tcp_ip_protocol_description#average_table-name_from_to | AVERAGE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#median_table-name_from_to | MEDIAN]]
+  * [[vscp_daemon_tcp_ip_protocol_description#stddev_table-name_from_to | STDDEV]]
+  * [[vscp_daemon_tcp_ip_protocol_description#variance_table-name_from_to | VARIANCE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#mode_table-name_from_to | MODE]]
+  * [[vscp_daemon_tcp_ip_protocol_description#lowerq_table-name_from_to | LOWERQ]]
+  * [[vscp_daemon_tcp_ip_protocol_description#upperq_table-name_from_to | UPPERQ]]
+  * [[vscp_daemon_tcp_ip_protocol_description#clear_table-name_to_from | CLEAR]]
+  * [[vscp_daemon_tcp_ip_protocol_description#create_table-name_create-parameters | CREATE]]
+
+
+**Websocket**
+
+  * [[vscp_daemon_vscp_websocket_interface | Websocket Interface]]
+  * [[vscp_daemon_websocket_interface_security | Security]]
+  * [[vscp_daemon_websocket_protocol_description | Protocol Description]]
+
+**Websocket Commands**
+
+  * [[vscp_daemon_websocket_protocol_description#send_events | Send Events]]
+  * [[vscp_daemon_websocket_protocol_description#noop | NOOP]]
+  * [[vscp_daemon_websocket_protocol_description#challenge | CHALLENGE]]
+  * [[vscp_daemon_websocket_protocol_description#auth | AUTH]]
+  * [[vscp_daemon_websocket_protocol_description#open | OPEN]]
+  * [[vscp_daemon_websocket_protocol_description#close | CLOSE]]
+  * [[vscp_daemon_websocket_protocol_description#clrq | CLRQ]]
+  * [[vscp_daemon_websocket_protocol_description#sf | SF]]
+  * [[vscp_daemon_websocket_protocol_description#rvar | RVAR]]
+  * [[vscp_daemon_websocket_protocol_description#wvar | WVAR]]
+  * [[vscp_daemon_websocket_protocol_description#cvar | CVAR]]
+  * [[vscp_daemon_websocket_protocol_description#delvar | DELVAR]]
+  * [[vscp_daemon_websocket_protocol_description#lstvar | LSTVAR]]
+  * [[vscp_daemon_websocket_protocol_description#rstvar | RSTVAR]]
+  * [[vscp_daemon_websocket_protocol_description#lenvar | LENVAR]]
+  * [[vscp_daemon_websocket_protocol_description#lcvar | LCVAR]]
+  * [[vscp_daemon_websocket_protocol_description#gt | GT]]
+  * [[vscp_daemon_websocket_protocol_description#measurement | MEASUREMENT]]
+
+  * [[vscp_daemon_websocket_protocol_description#errors | Errors]]
+  * [[vscp_daemon_widgets_and_javascript_library | Widgets and Javascript library]]
+
+**Widgets**
+
+  * [[vscpws_event | vscpws_Event]]
+  * [[vscpws_variable | vscpws_Variable]]
+  * [[vscpws_statebutton | vscpws_stateButton]]
+  * [[vscpws_simpletext | vscpws_simpleText]]
+  * [[vscpws_thermometercelsius | vscpws_thermometerCelsius]]
+  * [[vscpws_speedometercelsius | vscpws_speedometerCelsius]]
+
+**REST interface**
+
+  * [[vscp_daemon_vscp_daemon_rest_interface | REST Interface]]
+  * [[vscp_daemon_rest_interface_security | Security]]
+  * [[vscp_daemon_rest_protocol | REST Protocol Description]]
+  * <b>Commands</b>               
+  * [[vscp_daemon_rest_interface_open | Open session]]
+  * [[vscp_daemon_rest_interface_close | Close session]]
+  * [[vscp_daemon_rest_interface_status | Get status]]
+  * [[vscp_daemon_rest_interface_sendevent | Send Event]]
+  * [[vscp_daemon_rest_interface_readevent | Read Event]]
+  * [[vscp_daemon_rest_interface_setfilter | Set Filter]]
+  * [[vscp_daemon_rest_interface_clearinqueue | Clear Input queue]]
+  * [[vscp_daemon_rest_interface_creatvar | Create variable]]
+  * [[vscp_daemon_rest_interface_delvar | Delete variable]]
+  * [[vscp_daemon_rest_interface_readvar | Read variable]]
+  * [[vscp_daemon_rest_interface_writevar | Write variable]]
+  * [[vscp_daemon_rest_interface_listvar | List variables]]
+  * [[vscp_daemon_rest_interface_measurement | Send a measurement]]
+  * [[vscp_daemon_rest_interface_table | Get Table]]
+  * [[vscp_daemon_rest_interface_mdf | Get MDF]]
+
+**Decision Matrix**
+
+  * [[vscp_daemon_decision_matrix | Decision Matrix]]
+  * [[vscp_daemon_decision_matrix#actions | Actions]]
+  * [[javascript_callbacks | JavaScript callbacks]]
+  * [[vscp_daemon_decision_matrix#variable_substitution_for_parameters_escapes | Escapes]]
+  * [[vscp_daemon_decision_matrix_debug | Debugging]]
+  * [[decision_matrix_examples | Examples]]
+
+**Tables**
+
+  * [[vscp-tables | How to use tables]]
+
+**Variables**
+
+  * [[decision_matrix_varaibles | Variables Introduced]]
+  * [[decision_matrix_varaibles#variable_types | Variable Types]]
+  * [[decision_matrix_varaibles#variable_types | Variable write format]]
+  * [[decision_matrix_varaibles#persistent_storage_format | Variable persistent storage format]]
+
+**Drivers**
+
+  * [[vscp_daemon_driver_interfaces | Driver Interfaces]]
+
+**[[vscp_daemon_level_i_drivers | Level I Drivers]]**
+
+  * [[canal_interface_specification | API]]
+  * [[level1_driver_usb2can | 8Devices USB2CAN Driver]]
+  * [[level1_driver_apox | Apox Driver]]
+  * [[level1_driver_can4vscp | CAN4VSCP Driver]]
+  * [[level1_driver_ccs | CCS CAN Driver]]
+  * [[level1_driver_ixxat | IXATT VCI Driver]]
+  * [[level1_driver_can232 | Lawicel CAN232 Driver]]
+  * [[level1_driver_canusb | Lawicel CANUSB DriverV
+  * [[level1_driver_lirc | LIRC Driver]]
+  * [[level1_driver_logger | Logger Driver]]
+  * [[level1_driver_peak | PEAK CAN Adapter Driver]]
+  * [[level1_driver_socketcan | Socketcan Driver]]
+  * [[level1_driver_tellstick | Tellstick Driver]]
+  * [[level1_driver_vector | Vector CAN Driver]]
+  * [[level1_driver_zanthic | Zanthic CAN Driver]]
+
+**[[vscp_daemon_level_ii_drivers | Level II Drivers]]**
+
+  * [[vscp_daemon_level_ii_driver_api | API]]
+  * [[level2_driver_bluetooth_proximity | Bluetooth proximity driver]]
+  * [[level2_driver_lm_sensors | LM-sensors driver]]
+  * [[level2_driver_logger | Logger driver]]
+  * [[level2_driver_mqtt | MQTT driver]]
+  * [[level2_driver_raw_ethernet | Raw Ethernet driver]]
+  * [[level2_driver_socketcan | Socketcan driver]]
+  * [[level2_driver_tcpip/link | TCP/IP link driver]]
+  * [[level2_driver_wire1 | Linux 1-wire driver]]
+  * [[level2_driver_rpigpio | Raspberry Pi Linux GPIO driver]]
+  * [[level2_driver_simulation | Simulation driver]]
+ 
+**Appendix**
+
+  * [[history | History]]
+  * [[vscp_daemon_variable_persistent_storage_format | Variable persistent storage format]]
+  * [[vscp_daemon_variable_string_write_format | Variable write format]]>
+  * [[canal_interface_specification | CANAL]]
+
+**Other documentation**
+
+  * [[http://www.vscp.org/docs/vscpspec/doku.php?id=start | VSCP Specification]]
+  * [[http://www.vscp.org/docs/vscphelper/doku.php?id=start | VSCP Helper lib]]
+  * [[http://www.vscp.org/docs/vscpworks/doku.php?id=start | VSCP Works]]
+  * [[http://www.vscp.org/docs/vscpfirmware/doku.php | VSCP Firmware]]
+  * [[http://www.vscp.org/docs/html5/doku.php | HTML & Javascript]]
+  * [[http://www.vscp.org/wiki/doku.php | General VSCP wiki ]]
+

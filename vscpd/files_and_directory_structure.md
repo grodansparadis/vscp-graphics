@@ -1,0 +1,22 @@
+# Files and directory structure
+
+
+{{::vscpd_directory_structure.png|}}
+
+This picture above show the default directory structure for files for a VSCP server. The default installation folder is **/srv/vscp**.
+
+
+## Folder content
+
+ | Folder      | Content                                                                                                                                                                            | 
+ | ------      | -------                                                                                                                                                                            | 
+ | **certs**   | Contains SSL certificate and other security related data                                                                                                                           | 
+ | **web**     | The default root for the built in web server                                                                                                                                       | 
+ | **drivers** | All drivers are here. Level I (CANAL) drives in the **Level I folder** and Level II drivers in  the **Level II folder**. Uploading drivers use these folders and no others.        | 
+ | **actions** | The actions folder hold external execution scripts that an be executed from the DM (decision matrix). They all need to recognize action parameters.                                | 
+ | **scripts** | JavaScript and Lua scripts are stored here.                                                                                                                                        | 
+ | **tables**  | All VSCP tables is  store in this folder.                                                                                                                                          | 
+ | **logs**    | Logfiles are here.                                                                                                                                                                 | 
+ | **ux**      | User interface packages.                                                                                                                                                           | 
+ | **upload**  | Uploaded files goes here. This can be driver, scripts, DM-content, web-content and other content packed in an zip file with a XML manifest that tells how the file should be used. | 
+

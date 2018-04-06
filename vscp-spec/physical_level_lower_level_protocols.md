@@ -1,0 +1,711 @@
+
+\\ 
+\\ 
+
+# Physical Level/Lower level protocols
+
+When the protocol was designed its usefulness on the CAN bus was the main objective. The identifier length and many other things on Level I are therefore very “CAN-ish” in its design and behavior. CAN is however no prerequisite. The protocol works equally well over RS-232, RF-Links, Ethernet etc.
+
+Level I is effective over bandwidth limited links but don't have the full GUID of the nodes in the frames and some sort of lower level addressing system must be used. 
+
+\\ 
+\\ 
+
+## VSCP over TCP/IP
+
+**Default Port:** 9598
+
+VSCP level II is designed for TCP/IP and other high-end network transport mechanisms which are able to handle a lot more data then Level I devices. With normally all the additional bandwidth available it is ideal to always have a full addresses in packets for this type of media. That is the full GUID is available in the frame.
+
+A telnet type client server protocol is used, see [sec:VSCP-TCP/IP-Protocol] for a full description of the available commands. The VSCP daemon has this command set implemented in it's own tcp/ip interface, but a client only needs to implement a subset called the VSCP tcp/ip link protocol. 
+
+The TCP/IP driver of the VSCP daemon can be used to connect one VSCP daemon to other remote VSCP daemons or to lighter clients that export the VSCP tcp/ip link protocol. A client and the VSCP daemon can have a connection that is persistent or the VSCP daemon can connect to the client on regular intervals to fetch and send events. It is of course also possible for a client to connect to a VSCP daemon through it's TCP/IP interface instead.
+
+The VSCP helper library can be used if you want to write code that connects to a remote client using the VSCP TCP/IP link protocol. This is includes connections to the VSCP daemon.
+
+A RFC 854 (telnet) based protocol is supported over TCP/IP. The protocol is implemented in an extended form in the [VSCP Daemon](http://www.vscp.org/docs/vscpd/doku.php?id=start) and is described [here](http://www.vscp.org/docs/vscpd/doku.php?id=vscp_daemon_tcp_ip_control_interface). The protocol is very easy to implement in low resource clients and a driver is available that make connecting to a client a turn-key experience. Source for this implementation om Arduino and others is available in the [firmware repository](https///github.com/grodansparadis/vscp_firmware). For high security SSL is available as an option together with other security measures.
+
+\\ 
+\\ 
+
+##  VSCP over Ethernet (raw Ethernet) 
+
+VSCP can use Ethernet directly making it possible to construct very low end nodes that use readily available Ethernet hardware. There is no need for nickname schema's etc as a VSCP GUID can be constructed from an Ethernet MAC. The payload is a standard VSCP level II frame with some specific Ethernet stuff in it
+
+ | Content                     | Size         | Description                                                                                                                                                               | 
+ | -------                     | ----         | -----------                                                                                                                                                               | 
+ | Preamble                    | 62 bits      | Standard Ethernet preamble. (Part of Ethernet)                                                                                                                            | 
+ | SOF (Start of Frame)        | 2 bits       | Standard Ethernet SOF. (Part of Ethernet)                                                                                                                                 | 
+ | **Destination MAC address** | 6 bytes      | Always set to FF:FF:FF:FF:FF:FF (Part of Ethernet)                                                                                                                        | 
+ | **Source MAC address**      | 6 bytes      | Source address. Part of GUID see information below. (Part of Ethernet)                                                                                                    | 
+ | **Ethernet Type**           | 2 bytes      | Frame type: Always set to 0x257E (decimal 9598) (Part of Ethernet)                                                                                                        | 
+ | **Version**                 | 1 byte       | Currently zero for this version. May change in the future.                                                                                                                | 
+ | **VSCP head**               | 4 bytes      | VSCP Header                                                                                                                                                               | 
+ | **VSCP sub source address** | 2 bytes      | Identifies one subunit of an Ethernet device. Last two bytes of the GUID.                                                                                                 | 
+ | **Timestamp**               | 4 bytes      | Timestamp in microseconds. Module relative value.                                                                                                                         | 
+ | **obid**                    | 4 bytes      | For use by modules and drivers.                                                                                                                                           | 
+ | **VSCP class**              | 2 bytes      | 16-bit VSCP class                                                                                                                                                         | 
+ | **VSCP type**               | 2 bytes      | 16-bit VSCP type                                                                                                                                                          | 
+ | **DataSize**                | 2 bytes      | Size of data part. Needed because Ethernet frames must have a minimum length of 64 bytes so payload may be padded so we cannot deduce real data size from payload length. | 
+ | **Payload**                 | 0- 487 bytes | The VSCP data part. As usual 512-25 bytes.                                                                                                                                | 
+ | CRC                         | 4-bytes      | 32 bit CRC checksum (Part of Ethernet)                                                                                                                                    | 
+
+Type in bold is usually what is seen on the software level.
+
+The VSCP GUID for Ethernet is defined as
+
+    FF:FF:FF:FF:FF:FF:FF:FE:YY:YY:YY:YY:YY:YY:XX:XX
+
+where **FF:FF:FF:FF:FF:FF:FF:FE** say this is an Ethernet GUID and **YY:YY:YY:YY:YY:YY** is the MAC address and **XX:XX** is the ID for a specific VSCP device. Each node can thus appear as 65535 - 2 nodes which is perfect for a gateway or similar device that have VSCP devices connected on one or many other buses such as CAN, RF and the like. Two IDs are reserved. 0x0000 which is the Ethernet node itself and 0xFFFF which is all nodes on the interface. If a node consist just of itself then it can ignore the VSCP sub address but it is recommended that it use 0x0000 for its transmitted frames.
+
+The header (32-bits) is defined as follows
+
+ | Content                                      | Size    | Description                                                                  | 
+ | -------                                      | ----    | -----------                                                                  | 
+ | Priority (Bit 31,30,29)                      | 3 bits  | Standard VSCP priority.                                                      | 
+ | Cryptographic algorithm (Bit 28, 27, 26, 25) | 4 bits  | Cryptographic algorithm used to encrypt payloads. This is yet to be defined. | 
+ | Reserved                                     | 25 bits |                                                                              | 
+
+Cryptographic encoding is done after type up to and including the last data byte thus the VSCP head is never encoded.
+
+### Powering Ethernet nodes
+
+The unused pairs can be used to power nodes and that way making them lower cost. In a perfect world a standard compliant Power over Ethernet schema could have been used. Regrettably the technique is to expensive. At least at the moment. Instead a +9-48V DC injector is used. If in doubt use +48V DC. The IEEE 802.3af standard POE pin out is as follows:
+
+ | Pin | Description | 
+ | --- | ----------- | 
+ | 1   |             | 
+ | 2   |             | 
+ | 3   |             | 
+ | 4   | +9V - +28V  | 
+ | 5   | +9V - +28V  | 
+ | 6   |             | 
+ | 7   | GND         | 
+ | 8   | GND         | 
+
+Maximum power usage depends on the cabling but for AWG-24 it is 0.5A for each pair but never more then 13 watts. There is a description of how different manufacturers implement this here [http://pinouts.ru/Net/poe_pinout.shtml]. A calculator for losses can be found here [http://www.demarctech.com/techsupport/poecalculate.htm||Power calculator].
+
+\\ 
+\\ 
+
+## VSCP over UDP
+
+UDP be used to send and receive VSCP frames, non encrypted or encrypted and with or with out a frame acknowledge.
+
+**Default Port:** 33333
+
+### The packet format
+
+## Packet format
+
+ | Byte  | Description                                                            | Encrypted           | 
+ | ----  | -----------                                                            | ---------           | 
+ | 0     | Packet type & encryption settings.                                     | **Never encrypted** | 
+ | 1     | VSCP Level II Head MSB                                                 | Yes                 | 
+ | 2     | VSCP Level II Head LSB                                                 | Yes                 | 
+ | 3     | Timestamp microseconds MSB                                             | Yes                 | 
+ | 4     | Timestamp microseconds                                                 | Yes                 | 
+ | 5     | Timestamp microseconds                                                 | Yes                 | 
+ | 6     | Timestamp microseconds LSB                                             | Yes                 | 
+ | 7     | Year MSB                                                               | Yes                 | 
+ | 9     | Year LSB                                                               | Yes                 | 
+ | 9     | Month                                                                  | Yes                 | 
+ | 10    | Day                                                                    | Yes                 | 
+ | 11    | Hour                                                                   | Yes                 | 
+ | 12    | Minute                                                                 | Yes                 | 
+ | 13    | Second                                                                 | Yes                 | 
+ | 14    | CLASS MSB                                                              | Yes                 | 
+ | 15    | CLASS LSB                                                              | Yes                 | 
+ | 16    | TYPE MSB                                                               | Yes                 | 
+ | 17    | TYPE LSB                                                               | Yes                 | 
+ | 18-33 | ORIGINATING GUID                                                       | Yes                 | 
+ | 34    | DATA SIZE MSB                                                          | Yes                 | 
+ | 35    | DATA SIZE LSB                                                          | Yes                 | 
+ | 36-n  | data ... limited to max 512-25 = 487 bytes                             | Yes                 | 
+ | len-2 | CRC MSB (Calculated on HEAD + CLASS + TYPE + ADDRESS + SIZE + DATA…) | Yes                 | 
+ | len-1 | CRC LSB                                                                | yes                 | 
+ | opt   | Optional encryption data such as a 16-byte IV for AES follow here      | No                  | 
+
+The number above is the offset in the package. Len is the total datagram size.
+
+Time should always be UTC time. If the time block is set to all zero the current time will be set by interface (VSCP Server for example).
+
+##### Definition of type
+
+ | Bits    | Description                         | 
+ | ----    | -----------                         | 
+ | 7,6,5,4 | Packet type. Currently always zero. | 
+ | 3,2,1,0 | Encryption.                         | 
+
+##### Encryption types
+
+ | Code | Description                                                  | 
+ | ---- | -----------                                                  | 
+ | 0    | No encryption                                                | 
+ | 1    | AES128 CBC encryption. 16-byte IV is appended to each frame. | 
+ | 2    | AES192 CBC encryption. 16-byte IV is appended to each frame. | 
+ | 3    | AES256 CBC encryption. 16-byte IV is appended to each frame. | 
+ | 4-15 | Reserved                                                     | 
+
+For encryption/decryption code using OpenSSL see [this link](https///wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption). Note that byte 0 of the frame is never encrypted. The encryption/decryption is instead carried out over byte 1 to the CRC.
+
+On the VSCP Server the md5 of the [vscptoken](http://www.vscp.org/docs/vscpd/doku.php?id=configuring_the_vscp_daemon#security) is used as the key for AES128.
+
+##### Definition of head
+
+ | Bits  | Description                                                         | 
+ | ----  | -----------                                                         | 
+ | 15    | GUID is IP v.6 address.                                             | 
+ | 14-8  | Reserved (**Set to zero!**).                                        | 
+ | 7,6,5 | Priority.                                                           | 
+ | 4     | Hard-coded.                                                         | 
+ | 3     | Don't calculate CRC if bit set. CRC should be set to 0xAA55 if set. | 
+ | 2,1,0 | reserved (**Set to zero!**).                                        | 
+
+Note also that the MSB is sent before the LSB (network byte order, Big Endian). So, for little endian machines such as a typical PC the byte order needs to be reversed for multi-byte types.
+
+There is a 24-byte overhead to send one byte of data so this is not a protocol which should be used where an efficient protocol for data intensive applications is required and where data is sent in small packets.
+
+The CRC used is the 16-bit CCITT type and it should be calculated across all bytes except for the CRC itself.
+
+As indicated, the Class is 16-bits allowing for 65535 classes. Class 0000000x xxxxxxxx is reserved for the Level I classes. A low-end device should ignore all packages with a class > 511.
+
+A packet traveling from a Level I device out to the Level II world should have an address translation done by the master so that a full address will be visible on the level II segment. A packet traveling from a Level II segment to a Level I segment must have a class with a value that is less then 512 in order for it to be recognized. If it has it is aimed for the Level I segment. Classes 512-1023 are reserved for packets that should stay in the Level II segment but in all other aspects (the lower nine bits + type) are defined in the same manner as for the low-end net.
+
+The Level II register abstraction level also has more registers (32-bit address is used) and all registers are 32–bits wide. Registers 0-255 are byte wide and are the same as for level 1. If these registers are read at level 2 they still is read as 32-bit but have the unused bits set to zero. 
+
+\\ 
+\\ 
+
+## VSCP over CAN (CAN4VSCP)
+
+The maximum number of nodes VSCP can handle is 254. In practice, the number of nodes that can be connected to a CAN bus depends on the minimum load resistance a transceiver is able to drive. This is typically around 120 depending on all the transceivers and media (cables) used.
+
+The transmission speed (or nominal bit rate) **should be set to 125 kilobits per second** (8 uS bit time). 
+
+The maximum length of the cabling in a segment is typically 500 meters using AWG24 or similar (CAT5) and a nominal bit rate of 125kbps. Drops with a maximum length of 24 meters can be taken from this cable and the sum of all drops must not exceed a total of 120 meters counted together. 
+
+ | Bit Rate     | Max Bus Length (m) | Max Drop Length (m) | Max Cumulative Drop Length (m) | 
+ | --------     | ------------------ | ------------------- | ------------------------------ | 
+ | 1Mbps        | 25                 | 2                   | 10                             | 
+ | 800 Kbps     | 50                 | 3                   | 15                             | 
+ | 500 Kbps     | 100                | 6                   | 30                             | 
+ | 250 Kbps     | 250                | 12                  | 60                             | 
+ | **125 Kbps** | **500**            | **24**              | **120**                        | 
+ | 50 Kbps      | 1000               | 60                  | 300                            | 
+ | 20 Kbps      | 2500               | 150                 | 750                            | 
+ | 10 Kbps      | 5000               | 300                 | 1500                           | 
+
+*CAN bit rate data*
+
+The bit rate table is for reference only. CAN4VSCP uses 125 kbit.
+
+The cable should be terminated at both ends with 120 ohm resistors. VSCP uses Extended Data Frames with a 29-bit ID. The protocol is compatible with elementary CAN nodes such as the Microchip MCP2502x/5x I/O CAN expander. Just as for CANopen and DeviceNet, the sample point should be set at 87.5%. 
+
+### Format of the 29 bit CAN identifier in VSCP
+
+ | Bit | Use                 | Comment                                                                                                                                                                                                                                                    | 
+ | --- | ---                 | -------                                                                                                                                                                                                                                                    | 
+ | 28  | Priority            | Highest priority is 000b (=0) and lowest is 111b (=7)                                                                                                                                                                                                      | 
+ | 27  | Priority            |                                                                                                                                                                                                                                                            | 
+ | 26  | Priority            |                                                                                                                                                                                                                                                            | 
+ | 25  | Hard-coded          | If this bit is set the nickname-ID of the device is hard-coded                                                                                                                                                                                             | 
+ | 24  | VSCP-Class          | The class identifies the event class. There are 512 possible classes. This is the MSB bit of the class.                                                                                                                                                    | 
+ | 23  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 22  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 21  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 20  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 19  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 18  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 17  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 16  | VSCP-Class          |                                                                                                                                                                                                                                                            | 
+ | 15  | VSCP-Type           | The VSCP-type identifies the type of the event within the set event class. There are 256 possible types within a class. This is the MSB bit of the type.                                                                                                   | 
+ | 14  | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 13  | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 12  | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 11  | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 10  | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 9   | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 8   | VSCP-Type           |                                                                                                                                                                                                                                                            | 
+ | 7   | Originating-Address | The address is a unique address in the system. It can be a hard-set address or (hard-coded bit set) or an address retrieved through the nickname discovery process. 0x00 is reserved for a segment master node. 0xFF is reserved for no assigned nickname. | 
+ | 6   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 5   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 4   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 3   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 2   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 1   | Originating-Address |                                                                                                                                                                                                                                                            | 
+ | 0   | Originating-Address |                                                                                                                                                                                                                                                            | 
+
+If addressing of a particular node is needed the nickname address for the node is given as the first byte in the data part. This is a rare situation for VSCP and is mostly used in the register read/write events. 
+
+### RJ-XX pin-out
+
+Recommended connector is RJ-34/RJ-12 or RJ-11 with pinout as in this table.
+
+ | Pin   | Use       | RJ-11 | RJ-12 | RJ-45 | Patch Cable wire color T568B | 
+ | ---   | ---       | ----- | ----- | ----- | ---------------------------- | 
+ | 1     | +9-28V DC |       |       | RJ-45 | Orange/White                 | 
+ | 2 1   | +9-28V DC |       | RJ-12 | RJ-45 | Orange                       | 
+ | 3 2 1 | +9-28V DC | RJ-11 | RJ-12 | RJ-45 | Green/White                  | 
+ | 4 3 2 | CANH      | RJ-11 | RJ-12 | RJ-45 | Blue                         | 
+ | 5 4 3 | CANL      | RJ-11 | RJ-12 | RJ-45 | Blue/White                   | 
+ | 6 5 4 | GND       | RJ-11 | RJ-12 | RJ-45 | Green                        | 
+ | 7 6   | GND       |       | RJ-12 | RJ-45 | Brown/White                  | 
+ | 8     | GND       |       |       | RJ-45 | Brown                        | 
+
+
+{{:0_home_akhe_vscp_spec_images_rj45.jpg}}
+
+
+Note that the schematics drawings for VSCP modules use a symbol that is numbered looking from the PCB side. It thus appear as to be numbered in the other direction but is actually the same.
+
+Note also that CANopen specify a different schema [http://www.cd-systems.com/Can/can-cables.htm](http://www.cd-systems.com/Can/can-cables.htm) which is opposite numbered VSCP but they are actually the same. We use the numbering that look into the female connector and count from the left. They use the Arabic style and count from the right.
+
+Always try to use a pair of wires for CANH/CANL fort best noise immunity. If the EIA/TIA 56B standard is used this condition will be satisfied. This is good as most Ethernet networks already is wired this way. 
+
+### Using alternative bit-rates
+
+**Don't!** The bit-rate should be fixed at 125kbps. 8 microsecond bit time.
+
+\\ 
+\\ 
+
+## VSCP over a serial channel (RS-232)
+
+A byte stuffing binary interface is used to talk to the module through the serial interface.
+
+The protocol is created for VSCP Level I events but can be used for other purposes also, as the 16 byte data content indicates. In this case the class and type bytes can be used freely by the implementer. 
+
+Protocol defines are in [vscp_serial.h](https///github.com/grodansparadis/vscp_software/blob/master/src/vscp/common/vscp_serial.h)
+### General frame format
+
+The crc (X8 + X2 + X + 1) is calculated from, and including, frame type up to the last data-byte. For DLE in data which is sent as DLE DLE the crc is is calculated over just one of them.
+
+The channel byte can be used to logically separate different channels on the same physical line. Typically this can also be a serial line with many nodes which are polled for data.
+
+The sequence number byte marks a number for a sequence of a special frame. For instance four frame are sent after each other and they will get different counter numbers. The NACKs/ACKs that are responded from the node use the same counter values to separate the frames from others. Can, for example, be used to implement a sliding window protocol.
+
+As noted there can be two types of ACKs/NACKs one (251/252) is a general ACK/NACK that is the response when a frame is received and put in a buffer. This is generally all that is needed. The other version (249/250) can optionally be sent when the frame is actually sent on the interface. 
+
+### Frame format
+
+ | Byte  | Content          | Description                                                                          | 
+ | ----  | -------          | -----------                                                                          | 
+ | 0     | [DLE]            | Escape character                                                                     | 
+ | 1     | [STX]            | Start of frame                                                                       | 
+ | 2     | Frame type       | (See table below )                                                                   | 
+ | 3     | Channel          | The channel is used to separate messages from different units on a multi device bus. | 
+ | 4     | Sequence number  | The sequence number is increased by one for each new message sent by a node.         | 
+ | 5/6   | Size of payload  | Size of payload MSB/LSB                                                              | 
+ | 7..n  | Payload          | This is the payload of the frame.                                                    | 
+ | len-3 | Frame check sum. | CRC (X8 + X2 + X + 1).                                                               | 
+ | len-2 | [DLE]            | Escape character                                                                     | 
+ | len-1 | [ETX]            | End of frame                                                                         | 
+
+
+### Frame types
+
+ | Type   | Description                                                                                                                               | 
+ | ----   | -----------                                                                                                                               | 
+ | 0      | No operation(NOOP).                                                                                                                       | 
+ | 1      | VSCP event to/from node.                                                                                                                  | 
+ | 2      | CANAL message to/from node.                                                                                                               | 
+ | 3      | Configure - Can be used to configure a transmitting/receiving device. Actual data is device dependent.                                    | 
+ | 4      | Poll for event. A data frame is received if data is available and an operation=4 (no events to send) is returned if no data is available. | 
+ | 5      | No events to send.                                                                                                                        | 
+ | 6      | Multi frame CANAL message to/from node.                                                                                                   | 
+ | 7      | Multi frame VSCP event to/from node.                                                                                                      | 
+ | 8      | Capabilities request.                                                                                                                     | 
+ | 9      | Capabilities response.                                                                                                                    | 
+ | 10     | VSCP event to/from node WITH timestamp.                                                                                                   | 
+ | 11     | CANAL message to/from node WITH timestamp.                                                                                                | 
+ | 12     | Multi frame VSCP event to/from node WITH timestamp.                                                                                       | 
+ | 13     | Multi frame CANAL message to/from node WITH timestamp.                                                                                    | 
+ | 14-15  | Reserved.                                                                                                                                 | 
+ | 16     | Unused/reserved and __will never be used__ (DLE).                                                                                         | 
+ | 17-248 | Reserved.                                                                                                                                 | 
+ | 249    | Sent ACK.                                                                                                                                 | 
+ | 250    | Sent NACK.                                                                                                                                | 
+ | 251    | ACK.                                                                                                                                      | 
+ | 252    | NACK.                                                                                                                                     | 
+ | 253    | Error.                                                                                                                                    | 
+ | 254    | Command Reply.                                                                                                                            | 
+ | 255    | Command.                                                                                                                                  | 
+
+### Description of frames
+
+#### Frame type=0 - NOOP
+
+No data bytes.
+
+#### Frame type=1 - VSCP Event
+
+ | Data byte | Description                                    | 
+ | --------- | -----------                                    | 
+ | 0         | VSCP head MSB                                  | 
+ | 1         | VSCP head LSB                                  | 
+ | 2         | MSB of VSCP class                              | 
+ | 3         | LSB of VSCP class                              | 
+ | 4         | MSB of VSCP type                               | 
+ | 5         | LSB of VSCP type                               | 
+ | 6-21      | GUID (MSB first)                               | 
+ | 22-n      | VSCP data (0-487 bytes/Max 8 byte for Level I) | 
+
+#### Frame type=2 - CANAL message
+
+ | Data byte | Description                | 
+ | --------- | -----------                | 
+ | 0         | CAN id (MSB)               | 
+ | 1         | CAN id                     | 
+ | 2         | CAN id                     | 
+ | 3         | CAN id (LSB)               | 
+ | 4         | dlc (0-8). Length of data. | 
+ | 5-n       | CAN data (0-8 bytes)       | 
+
+#### Frame type=3 - Configure
+
+Format for data bytes defined by the maker of the device
+
+#### Frame type=4 - Poll
+
+No data bytes.
+
+#### Frame type=5 - No events
+
+No data bytes.
+
+#### Frame type=6 - Multi frame CANAL
+
+To make sending and receiving more efficient it is possible to send multiple CANAL frames as payload in one serial frame. Each frame is sent as 
+
+ | Data byte | Description                | 
+ | --------- | -----------                | 
+ | 0         | id MSB                     | 
+ | 1         | id                         | 
+ | 2         | id                         | 
+ | 3         | id LSB                     | 
+ | 4         | datacount                  | 
+ | 5-n       | data                       | 
+ | n+1       | Start of next CANAL frame. | 
+
+and can therefore have a maximum size of 13 bytes each.
+
+#### Frame type=7 - Multi frame VSCP
+
+To make sending and receiving more efficient it is possible to send multiple VSCP frames as payload in one serial frame. Each frame is sent as 
+
+ | Data byte | Description                                    | 
+ | --------- | -----------                                    | 
+ | 0         | VSCP head MSB                                  | 
+ | 1         | VSCP head LSB                                  | 
+ | 2         | MSB of VSCP class                              | 
+ | 3         | LSB of VSCP class                              | 
+ | 4         | MSB of VSCP type                               | 
+ | 5         | LSB of VSCP type                               | 
+ | 6-21      | GUID (MSB first)                               | 
+ | 22        | data count MSB                                 | 
+ | 23        | data count LSB                                 | 
+ | 24-n      | VSCP data (0-487 bytes/Max 8 byte for Level I) | 
+ | n+1       | start of next VSCP frame                       | 
+
+#### Frame type=8 - Request capabilities
+
+Request capabilities of a device. A device will respond with a Request capabilities reply that shows what the devices can do. The sent payload is the capabilities of the requesting device.
+
+The default value is what a device should suppose is true if no capabilities request reply has been received from a host. It can of course itself send the capabilities request.
+
+Do not make expectations of the length of this frame as it will most certainly grow in the future.
+
+ | Data byte | Description                                                                      | 
+ | --------- | -----------                                                                      | 
+ | 0         | Max number of VSCP frames this devices can receive in a multi frame (default=1)  | 
+ | 1         | Max number of CANAL frames this devices can receive in a multi frame (default=1) | 
+
+#### Frame type=9 - Request capabilities reply
+
+Answer to request for capabilities of device. The default value is what a driver should suppose is true if no capabilities request reply has been received from the device.
+
+Do not make expectations of the length of this frame as it will most certainly grow in the future.
+
+ | Data byte | Description                                                                      | 
+ | --------- | -----------                                                                      | 
+ | 0         | Max number of VSCP frames this devices can receive in a multi frame (default=1)  | 
+ | 1         | Max number of CANAL frames this devices can receive in a multi frame (default=1) | 
+
+#### Frame type=10 - VSCP Event with timestamp
+
+ | Data byte | Description                                    | 
+ | --------- | -----------                                    | 
+ | 0         | VSCP head MSB                                  | 
+ | 1         | VSCP head LSB                                  | 
+ | 2         | Timestamp MSB Microsconds                      | 
+ | 3         | Timestamp                                      | 
+ | 4         | Timestamp                                      | 
+ | 5         | Timestamp LSB                                  | 
+ | 6         | MSB of VSCP class                              | 
+ | 7         | LSB of VSCP class                              | 
+ | 8         | MSB of VSCP type                               | 
+ | 9         | LSB of VSCP type                               | 
+ | 10-25     | GUID (MSB first)                               | 
+ | 26-n      | VSCP data (0-487 bytes/Max 8 byte for Level I) | 
+
+#### Frame type=11 - CANAL message with timestamp
+
+ | Data byte | Description                | 
+ | --------- | -----------                | 
+ | 0         | CAN id (MSB)               | 
+ | 1         | CAN id                     | 
+ | 2         | CAN id                     | 
+ | 3         | CAN id (LSB)               | 
+ | 4         | Timestamp MSB Microsconds  | 
+ | 5         | Timestamp                  | 
+ | 6         | Timestamp                  | 
+ | 7         | Timestamp LSB              | 
+ | 8         | dlc (0-8). Length of data. | 
+ | 9-n       | CAN data (0-8 bytes)       | 
+
+#### Frame type=12 - Multi frame CANAL with timestamp
+
+To make sending and receiving more efficient it is possible to send multiple CANAL frames as payload in one serial frame. Each frame is sent as 
+
+ | Data byte | Description                | 
+ | --------- | -----------                | 
+ | 0         | id MSB                     | 
+ | 1         | id                         | 
+ | 2         | id                         | 
+ | 3         | id LSB                     | 
+ | 4         | Timestamp MSB Microsconds  | 
+ | 5         | Timestamp                  | 
+ | 6         | Timestamp                  | 
+ | 7         | Timestamp LSB              | 
+ | 8         | datacount                  | 
+ | 9         | dlc (0-8). Length of data. | 
+ | 10-n      | data                       | 
+ | n+1       | Start of next CANAL frame. | 
+
+and can therefore have a maximum size of 13 bytes each.
+
+#### Frame type=13 - Multi frame VSCP with timestamp
+
+To make sending and receiving more efficient it is possible to send multiple VSCP frames as payload in one serial frame. Each frame is sent as 
+
+ | Data byte | Description                                    | 
+ | --------- | -----------                                    | 
+ | 0         | VSCP head MSB                                  | 
+ | 1         | VSCP head LSB                                  | 
+ | 2         | Timestamp MSB Microsconds                      | 
+ | 3         | Timestamp                                      | 
+ | 4         | Timestamp                                      | 
+ | 5         | Timestamp LSB                                  | 
+ | 6         | MSB of VSCP class                              | 
+ | 7         | LSB of VSCP class                              | 
+ | 8         | MSB of VSCP type                               | 
+ | 9         | LSB of VSCP type                               | 
+ | 10-25     | GUID (MSB first)                               | 
+ | 26        | data count MSB                                 | 
+ | 27        | data count LSB                                 | 
+ | 28-n      | VSCP data (0-487 bytes/Max 8 byte for Level I) | 
+ | n+1       | start of next VSCP frame                       | 
+
+#### Frame type=249 - Sent ACK
+
+No data bytes.
+
+#### Frame type=250 - Sent NACK
+
+No data bytes.
+
+#### Frame type=251 - ACK
+
+No data bytes.
+
+#### Frame type=252 - NACK
+
+No data bytes.
+
+#### Frame type=253 - Error
+
+ | Data byte | Description                | 
+ | --------- | -----------                | 
+ | 0         | Error code                 | 
+ | 1-255     | Possible real text message | 
+
+#### Frame type=254 - Command reply
+
+ | Data byte | Description                                                   | 
+ | --------- | -----------                                                   | 
+ | 0         | Reply code (0 is OK other code is application specific error) | 
+ | 1         | Command code                                                  | 
+
+#### Frame type=255 - Command
+
+ | Data byte | Description                      | 
+ | --------- | -----------                      | 
+ | 0         | Command code                     | 
+ | 1-n       | Command parameters (0-256 bytes) | 
+
+### Special characters
+
+As [DLE] is used as escape character the [DLE] itself is sent as [DLE][DLE]. The ASCII values for the reserved characters are
+
+ | Character | ASCII code | 
+ | --------- | ---------- | 
+ | [DLE]     | 0x10       | 
+ | [NUL]     | 0x00       | 
+ | [STX]     | 0x02       | 
+ | [ETX]     | 0x03       | 
+
+### Command codes
+
+Command codes and data format is decided by the device implementer. 
+
+### Response codes
+
+Response codes and data format is decided by the device implementer. 
+
+### Error codes
+
+Error codes and data format is decided by the device implementer. 
+
+\\ 
+\\ 
+
+## VSCP Level I over RS-485/RS-422
+
+This is a description of a low level protocol for RS-485. The protocol is a server based protocol and is low speed but very cheap to implement. At a very low additional cost a CAN network with full VSCP functionality and server less functionality can be constructed and this is recommended for the majority of systems.
+
+**Baudrate:** 115200 (or any other suitable Baudrate) 
+**Format:** 8N1 for packages. 9N1 for address.
+
+### Addressing
+
+Addressing is done with nine bit addressing. Address 0 is reserved for the server and the rest of the addresses are free to use for clients. Addresses are hard-coded within devices and each device should have its own unique address. Nine bit addressing is described here [http://electronicdesign.com/embedded/use-pcs-uart-9-bit-protocols](http://electronicdesign.com/embedded/use-pcs-uart-9-bit-protocols)
+
+### Packet format
+
+If a node has a event to send it sends it directly after the poll event. The node should respond within one maximum packet time (14 * 8 * 104uS = 10 ms. Note that the event may be addressed to another node on the segment not only to the host.
+
+If the node has no events to send it can either not reply to the poll or reply with “No Events to send” which is the preferable way.
+
+The events is standard VSCP Level I events in every other aspect.
+
+A master on a RS-485 segment must check for new nodes on regular intervals. With 127 possible nodes this process could take 1.3 seconds to perform. Instead of doing all this at once it may be better to spread it over the standard polling range. That is to do a full polling of all active nodes and then try to discover a new node on an unused address etc etc. 
+
+##### Frame format
+
+ | Byte | Content                                              | 
+ | ---- | -------                                              | 
+ | 0    | Nine bit destination address                         | 
+ | 1    | Originating address (master=0)                       | 
+ | 2    | Operation (see below)                                | 
+ | 3    | Flags + bit nine of the class ( see below)           | 
+ | 4    | VSCP Class (Lower 8 bits).                           | 
+ | 5    | VSCP Type                                            | 
+ | 6    | Data byte 0                                          | 
+ | 7    | Data byte 1                                          | 
+ | 8    | Data byte 2                                          | 
+ | 9    | Data byte 3                                          | 
+ | 10   | Data byte 4                                          | 
+ | 11   | Data byte 5                                          | 
+ | 12   | Data byte 6                                          | 
+ | 13   | Data byte 7                                          | 
+ | 14   | Packet CRC (counted from address (low 8-bits of it). | 
+
+The DOW checksum is used. [http://www.vscp.org/wiki/doku.php?id=vscp_specification_crc_polynoms.](http://www.vscp.org/wiki/doku.php?id=vscp_specification_crc_polynoms.)
+
+##### Operations
+
+ | Operation code | Description                                            | 
+ | -------------- | -----------                                            | 
+ | 0              | No operation                                           | 
+ | 1              | Level I event to/from node.                            | 
+ | 2              | Poll for event. (No data content follows, just CRC).   | 
+ | 3              | No events to send (No data content follows, just CRC). | 
+
+##### Flags
+
+ | Bit | Description                      | 
+ | --- | -----------                      | 
+ | 0-3 | Number of data-bytes             | 
+ | 4   | Bit nine of Class.               | 
+ | 5-7 | reserved and should be set to 0. | 
+
+\\ 
+\\ 
+
+### VSCP over IEEE 802.15.4
+
+**Preliminary Information. May change in future specifications.**
+
+Two protocols are used over 802.15.4, VSCP Droplet protocol av VSCP BumbleBee protocol.
+
+### VSCP Droplet protocol
+
+More information will be added...
+
+### VSCP BumbleBeez Protocol
+
+**BumbleBeez** is a small and very lightweight protocol used for RF links. More information will be added...
+
+#### 802.15.4 payload usage
+
+The 802.15.4 payload is max 122 bytes. This payload can carry one or more VSCP events. The first byte tell how many events there is in the frame. 
+
+ | Byte              | Description                          | 
+ | ----              | -----------                          | 
+ | 0                 | Number of VSCP events in frame (1-x) | 
+ | 1                 | Head (see below)                     | 
+ | 2                 | VSCP class                           | 
+ | 3                 | VSCP type                            | 
+ | 4                 | Start of data. Max eight byte. Min 0 | 
+ | 4 + datacount + 1 | head for next event if any           | 
+
+##### Definition of head
+
+ | Bits    | Description             | 
+ | ----    | -----------             | 
+ | 7,6,5   | Priority                | 
+ | 4       | bit 9 of VSCP class     | 
+ | 3,2,1,0 | reserved (Set to zero!) | 
+
+\\ 
+\\ 
+
+## VSCP over MQTT
+
+VSCP is really the prefect match for MQTT. See [MQTT-driver](http://www.vscp.org/docs/vscpd/doku.php?id=level2_driver_mqtt) for a description on how to use MQTT with the VSCP daemon. 
+
+\\ 
+\\ 
+
+## VSCP REST
+
+The VSCP daemon implements a REST protocol mechanism that also can be used by lower end clients. See the [VSCP daemon documentation](http://www.vscp.org/docs/vscpd/doku.php?id=vscp_daemon_vscp_daemon_rest_interface) for a full description.
+
+\\ 
+\\ 
+
+## VSCP TEXT
+
+** Experimental**
+
+VSCP events sent over text links of any kind such as email, SMS or even an uploaded text file over a ftp-link is just standard events with abbreviations where abbreviations are human readable commands and responses that is used instead of GUID's, zones, subzones and events. Typically a user can send an SMS with 
+
+    READ TEMPERATURE IN KITCHEN 
+
+and get the read temperature reported back.
+
+The first and most important is the event style.
+
+    head,class,type,obid,time-stamp,GUID,data1,data2,data3....
+
+That is a line started with a number will be interpreted as an event of the above form. A hard way to send command but a method that still can be useful for M2M communication over text links. In the same way a line received over a VSCP text link with a number at the first position should be interpreted as a VSCP event. So in abbreviations one has to make sure that a temperature value response has a space or something in front of the number.
+
+*A full description of this functionality will follow.*
+
+
+\\ 
+----
+{{  ::copyright.png?400  |}}
+
+`<HTML>``<p style="color:red;text-align:center;">``<a href="http://www.paradiseofthefrog.com">`Paradise of the Frog AB`</a>``</p>``</HTML>`

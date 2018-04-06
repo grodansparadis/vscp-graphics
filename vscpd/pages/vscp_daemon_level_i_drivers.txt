@@ -1,0 +1,32 @@
+====== VSCP Daemon Level I Drivers ======
+
+This is just a .dll (Windows) or a .so (Linux) file with the CANAL interface exported. The interface is described [[CANAL Interface Specification|here]]. Several Level I driver comes with the VSCP & Friends package.
+
+The good thing with the Level I interface is that you can add the .dll or .so as a driver to VSCP daemon or use the dll/do directly from your own application such and in VSCP Works. 
+
+The drivers are configured in the vscpd.conf file (format is [[http://www.vscp.org/docs/vscpd/doku.php?id=configuring_the_vscp_daemon|here]]). If you use more then one driver with different configuration it is very important that the prefix is set to different values for each of them. The prefix is prepended to a variable name before it is fetched from the daemon or set for that matter.
+
+To make a Level I driver just create a dynamically linked library that export the CANAL interface. There are plenty of examples to use as a starting point for creating your own driver in the [[https://github.com/grodansparadis/vscp_software|source tree for the VSCP & Friends package at GitHub]]. Look in  [[https://github.com/grodansparadis/vscp_software/tree/master/src/vscp/drivers/level1|src/vscp/drivers/level1]] folder.
+
+For Python developers [[http://python-can.readthedocs.io/en/latest/index.html|python-can]] is a good tool. __Unfortunately__ the CANAL interface is names USB2CAN but it is there.
+
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_usb2can|8Devices USB2CAN Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_apox|Apox Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_can4vscp|CAN4VSCP Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_ccs|CCS CAN Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_ixxat|IXATT VCI Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_can232|Lawicel CAN232 Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_canusb|Lawicel CANUSB Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_lirc|LIRC Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_logger|Logger Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_peak|PEAK CAN Adapter Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_socketcan|Socketcan Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_tellstick|Tellstick Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_vector|Vector CAN Driver]]
+  * [[http://www.vscp.org/docs/vscpd/doku.php?id=level1_driver_zanthic|Zanthic CAN Driver]]
+ 
+\\ 
+----
+{{  ::copyright.png?600  |}}
+
+<HTML><p style="color:red;text-align:center;"><a href="http://www.grodansparadis.com">Grodans Paradis AB</a></p></HTML>
